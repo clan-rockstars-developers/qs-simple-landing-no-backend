@@ -1,0 +1,54 @@
+script.
+  /*
+  *
+  * Шрифт должен быть закодирован в base64 при помощи сервиса https://transfonter.org/ или url-loader'а
+  *
+  * Будет проверка на возможность использования шрифтов, затем за использование Woff2
+  * 
+  * Функции надо будет скормить 2 css файла с вложенными шрифтами base64
+  * В 1 файле простой Woff, TTF, EOT ( SVG по желанию, но тогда он сильно прибавит в размере)
+  * В 2 файле Woff2 и только он
+  *
+  * Данный css файл будет сохранён в localStorage и в любой момент можно будет его воскресить
+  *
+  * Шаблон использования:
+  * window.loadFont('Podkova', '/static/fonts/Podkova/woff.css', '/static/fonts/Podkova/woff2.css')
+  *
+  */
+  function loadFont(fontName, woffUrl, woff2Url) {
+    if (typeof window === 'undefined') return
+      var nua = window.navigator.userAgent;
+      var noSupport = !window.addEventListener || (nua.match(/(Android (2|3|4.0|4.1|4.2|4.3))|(Opera (Mini|Mobi))/) && !nua.match(/Chrome/))
+      if (noSupport) { return ; }
+      var loSto = {};
+      try {loSto = localStorage || {}; } catch (ex) {}
+      var localStoragePrefix = 'x-font-' + fontName;
+      var localStorageUrlKey = localStoragePrefix + 'url';
+      var localStorageCssKey = localStoragePrefix + 'css';
+      var storedFontUrl = loSto[localStorageUrlKey];
+      var storedFontCss = loSto[localStorageCssKey];
+      var styleElement = document.createElement('style');
+      styleElement.rel = 'stylesheet';
+      document.head.appendChild(styleElement);
+      if (storedFontCss && (storedFontUrl === woffUrl || storedFontUrl === woff2Url)) {
+        styleElement.textContent = storedFontCss;
+      } else {
+        var url = (woff2Url && supportsWoff2()) ? woff2Url : woffUrl;
+        var request = new XMLHttpRequest();
+        request.open('GET', url);
+        request.onload = function () {
+          if (request.status >= 200 && request.status < 400) {
+            loSto[localStorageUrlKey] = url;
+            loSto[localStorageCssKey] = styleElement.textContent = request.responseText;
+          }
+        };
+        request.send();
+      }
+      function supportsWoff2() {
+        if (!window.FontFace) { return false; }
+        var f = new FontFace('t', 'url("data:application/font-woff2,") format("woff2")', {});
+        f.load();
+        return f.status === 'loading';
+      }
+    }
+  window.loadFont = loadFont

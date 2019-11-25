@@ -28,7 +28,8 @@ module.exports = {
       },{
         test: /\.sass$/,
         use: [
-          isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+          // isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+          MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
