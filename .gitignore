@@ -2,8 +2,7 @@
 node_modules
 dist
 production
-
-#Lock files
 package-lock.json
 yarn.json
 yarn.lock
+
